@@ -2,47 +2,48 @@
 
 <!-- mcp-name: io.github.matematicsolutions/mcp-eureka -->
 
-Serwer **MCP (Model Context Protocol)** dla systemu **EUREKA** Ministerstwa Finansow
-(`eureka.mf.gov.pl`) - **550 000+ dokumentow polskiej praktyki podatkowej**, w tym
-**517 000+ interpretacji indywidualnych Krajowej Informacji Skarbowej (KIS)**,
-interpretacje ogolne, objasnienia podatkowe, wiazace informacje stawkowe (WIS)
-i akcyzowe (WIA).
+An **MCP (Model Context Protocol)** server for the **EUREKA** system of the
+Ministerstwo Finansow / MF (Ministry of Finance) (`eureka.mf.gov.pl`) -
+**550,000+ documents of Polish tax practice**, including **517,000+ individual
+interpretacje podatkowe (tax interpretations) of the Krajowa Informacja
+Skarbowa / KIS (National Revenue Information)**, general interpretations, tax
+explanations, and binding rate (WIS) and excise (WIA) information.
 
-Najwiekszy pojedynczy korpus praktyki podatkowej w Polsce, dostepny dla agentow
-Claude / Cursor / VS Code MCP z weryfikowalnymi cytatami (sygnatura + URL + data).
+The largest single corpus of tax practice in Poland, available to Claude /
+Cursor / VS Code MCP agents with verifiable citations (signature + URL + date).
 
-**Status: v0.1.0** | Licencja: **MIT** | Maintainer: [MateMatic](https://matematicsolutions.com)
+**Status: v0.1.0** | License: **MIT** | Maintainer: [MateMatic](https://matematicsolutions.com)
 
-> Interpretacje podatkowe nie sa zrodlem prawa - to praktyka organow
-> (art. 14a-14s Ordynacji podatkowej). Ochrona prawna przysluguje wnioskodawcy
-> danej interpretacji indywidualnej.
+> Tax interpretations are not a source of law - they are the practice of
+> authorities (art. 14a-14s of the Tax Ordinance). Legal protection applies to
+> the applicant of a given individual interpretation.
 
-## Skad dane
+## Data source
 
-Publiczne JSON API portalu EUREKA (backend Angular SPA, bez klucza), zweryfikowane
-live 2026-07-08:
+The public JSON API of the EUREKA portal (Angular SPA backend, no key required),
+verified live on 2026-07-08:
 
 - `POST /api/public/v1/wyszukiwarka/informacje/?size=N&page=N&sort=DT_WYD,desc` -
-  wyszukiwarka (filtry: `SYG`, `KATEGORIA_INFORMACJI` jako tablica id,
-  `DT_WYD_start`/`DT_WYD_end`; `searchQuery` w body). **Trailing slash przed `?`
-  jest obowiazkowy** - bez niego backend zwraca HTTP 500.
-- `GET /api/public/v1/informacje/{id}` - pelny dokument (metadane + tresc HTML).
+  search (filters: `SYG`, `KATEGORIA_INFORMACJI` as an array of ids,
+  `DT_WYD_start`/`DT_WYD_end`; `searchQuery` in the body). **The trailing slash
+  before `?` is mandatory** - without it the backend returns HTTP 500.
+- `GET /api/public/v1/informacje/{id}` - full document (metadata + HTML content).
 - `GET /api/public/v1/pozycje-slownika/wyszukiwarka?kodSlownika=KATEGORIA_INFORMACJI` -
-  slownik kategorii (28 pozycji).
+  category dictionary (28 entries).
 
-## Narzedzia MCP
+## MCP tools
 
 - **`search(query?, full_phrase?, signature?, category_ids?, date_from?, date_to?, page?, page_size?)`** -
-  wyszukiwanie z filtrami; sort po dacie wydania malejaco.
-- **`get_interpretation(id)`** - pelny dokument po ID_INFORMACJI (teza + pierwsze
-  3000 znakow tresci).
-- **`search_by_signature(signature)`** - skrot: po sygnaturze, pelnej
-  (`0112-KDIL3.4012.367.2026.2.AK`) lub prefiksie (`0112-KDIL3`).
-- **`list_categories()`** - slownik kategorii (id -> nazwa) do `category_ids`.
+  search with filters; sorted by issue date descending.
+- **`get_interpretation(id)`** - full document by ID_INFORMACJI (thesis + first
+  3000 characters of content).
+- **`search_by_signature(signature)`** - shortcut: by signature, full
+  (`0112-KDIL3.4012.367.2026.2.AK`) or prefix (`0112-KDIL3`).
+- **`list_categories()`** - category dictionary (id -> name) for `category_ids`.
 
-Kazda zwrotka zawiera `structuredContent.citations` (title, url, signature,
-issue_date) - kontrakt konsumowany przez [Patron](https://github.com/matematicsolutions/patron)
-i dowolnego agenta MCP.
+Every response includes `structuredContent.citations` (title, url, signature,
+issue_date) - the contract consumed by [Patron](https://github.com/matematicsolutions/patron)
+and any MCP agent.
 
 ## Quickstart
 
@@ -51,46 +52,47 @@ npm install
 npm run build
 npm start                # stdio transport
 
-npm run drift            # spojnosc INSTRUCTIONS <-> TOOLS <-> ErrorCode
-npm run test:parse       # offline - fixtures z prawdziwych odpowiedzi API
+npm run drift            # consistency INSTRUCTIONS <-> TOOLS <-> ErrorCode
+npm run test:parse       # offline - fixtures from real API responses
 npm run smoke            # LIVE - eureka.mf.gov.pl (throttled 2 req/s)
 ```
 
-Konfiguracja klienta MCP (`mcp-servers.json`):
+MCP client configuration (`mcp-servers.json`):
 
 ```json
 {
   "mcpServers": {
     "eureka": {
       "command": "node",
-      "args": ["<sciezka>/mcp-eureka/dist/index.js"]
+      "args": ["<path>/mcp-eureka/dist/index.js"]
     }
   }
 }
 ```
 
-## Konektory polskiego prawa MateMatic
+## MateMatic Polish-law connectors
 
-[`mcp-saos`](https://github.com/matematicsolutions/mcp-saos) (sady powszechne/SN/TK/KIO) ·
+[`mcp-saos`](https://github.com/matematicsolutions/mcp-saos) (common courts/SN/TK/KIO) ·
 [`mcp-nsa`](https://github.com/matematicsolutions/mcp-nsa) (NSA + 16 WSA) ·
-[`mcp-eureka`](https://github.com/matematicsolutions/mcp-eureka) (ten) ·
+[`mcp-eureka`](https://github.com/matematicsolutions/mcp-eureka) (this one) ·
 [`mcp-isap`](https://github.com/matematicsolutions/mcp-isap) (Dz.U. + M.P.) ·
 [`mcp-krs`](https://github.com/matematicsolutions/mcp-krs) (KRS) ·
 [`kio-orzeczenia-mcp`](https://github.com/matematicsolutions/kio-orzeczenia-mcp) (KIO)
 
-Konwencja floty: jeden konektor = jedno zrodlo (single-source). Kazde wywolanie
-zwraca cytowalne zrodlo, zero modyfikacji tresci, stateless.
+Fleet convention: one connector = one source (single-source). Every call returns
+a citable source, zero content modification, stateless.
 
 ## Disclaimer
 
-Dane pochodza z publicznego systemu EUREKA Ministerstwa Finansow. Konektor nie
-modyfikuje tresci, throttluje zapytania (max 2 req/s) i identyfikuje sie
-User-Agentem z adresem repo. Interpretacja przepisow w konkretnej sprawie wymaga
-wlasnej interpretacji indywidualnej lub opinii doradcy podatkowego.
+The data comes from the public EUREKA system of the Ministry of Finance. The
+connector does not modify content, throttles requests (max 2 req/s), and
+identifies itself with a User-Agent carrying the repo address. Interpreting the
+law in a specific case requires your own individual interpretation or the
+opinion of a tax advisor.
 
-## Licencja
+## License
 
-MIT - patrz [LICENSE](./LICENSE).
+MIT - see [LICENSE](./LICENSE).
 
-Cytowanie: *MateMatic Solutions (2026), mcp-eureka - MCP server dla polskich
-interpretacji podatkowych (EUREKA/KIS), https://github.com/matematicsolutions/mcp-eureka, MIT.*
+Citation: *MateMatic Solutions (2026), mcp-eureka - MCP server for Polish tax
+interpretations (EUREKA/KIS), https://github.com/matematicsolutions/mcp-eureka, MIT.*
