@@ -1,0 +1,11 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.matematicsolutions/mcp-eureka",
+  "description": "MCP server for Polish tax interpretations (KIS/MF) via EUREKA with citations.",
+  "version": "0.1.0",
+  "repository": {
+    "url": "https://github.com/matematicsolutions/mcp-eureka",
+    "source": "github"
+  },
+  "packages": []
+}
