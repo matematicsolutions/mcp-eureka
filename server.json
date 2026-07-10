@@ -7,5 +7,16 @@
     "url": "https://github.com/matematicsolutions/mcp-eureka",
     "source": "github"
   },
-  "packages": []
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@matematicsolutions/mcp-eureka",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
 }

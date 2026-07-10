@@ -1,0 +1,72 @@
+name: release
+
+# Publish to npm + MCP Registry on version tag (e.g. `git tag v1.1.1 && git push origin v1.1.1`).
+#
+# NPM AUTH — first publish of a brand-new scoped package:
+#   npm trusted publishing (OIDC) is configured in the settings of an ALREADY-EXISTING
+#   package — there is no PyPI-style pending-publisher pre-registration. So the FIRST
+#   release authenticates with a granular automation token (secret NPM_TOKEN) while still
+#   emitting build provenance (id-token: write). After the package exists, configure a
+#   trusted publisher on npmjs.com → package settings and the token can be removed for OIDC.
+# Requires Node >= 22.14.0 and npm CLI >= 11.5.1.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch: {}   # manual re-run of the MCP Registry publish without bumping the package version
+
+permissions:
+  contents: read
+  id-token: write   # required for npm provenance attestation (and later full OIDC)
+
+jobs:
+  build-and-publish-npm:
+    if: github.event_name == 'push'   # only on a version tag; skipped on manual dispatch
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # --provenance dropped: npm@latest global reinstall corrupts the bundled
+      # sigstore module in this runner image (MODULE_NOT_FOUND 'sigstore'),
+      # and the default npm shipped with setup-node is new enough to publish.
+      # (publishConfig.provenance in package.json still emits provenance.)
+      - name: Publish to npm (granular token)
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-mcp-registry:
+    needs: build-and-publish-npm
+    # run after a successful npm publish, OR standalone on manual dispatch
+    if: always() && (github.event_name == 'workflow_dispatch' || needs.build-and-publish-npm.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC login to the MCP Registry
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_amd64.tar.gz" | tar xz mcp-publisher
+          sudo mv mcp-publisher /usr/local/bin/
+
+      - name: Login to MCP Registry (GitHub OIDC)
+        run: mcp-publisher login github-oidc
+
+      - name: Publish server.json to MCP Registry
+        run: mcp-publisher publish
