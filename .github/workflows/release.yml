@@ -40,6 +40,17 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Until 2026-11-21 the release went `npm ci -> build -> publish` with no test: the
+      # gates ran on pull requests only (ci.yml), so a tagged broken commit could still
+      # reach npm. Same deterministic set as ci.yml; `smoke` stays out because it calls
+      # the live source and an upstream outage must not block our release.
+      - name: Run gates before publishing
+        run: |
+          npm run drift
+          npm run test:parse
+          npm run test:conformance
+          npm run test:descriptors
+
       # --provenance dropped: npm@latest global reinstall corrupts the bundled
       # sigstore module in this runner image (MODULE_NOT_FOUND 'sigstore'),
       # and the default npm shipped with setup-node is new enough to publish.
